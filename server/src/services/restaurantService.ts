@@ -1,26 +1,43 @@
 import { prisma } from '../config/prisma';
+import type { Prisma } from '@prisma/client';
 import type { CreateRestaurantInput } from '../validators/restaurant';
+import type { ListQuery } from '../validators/restaurantQuery';
 
-export async function listRestaurants() {
+export async function listRestaurants(q: ListQuery) {
+    const where: Prisma.RestaurantWhereInput = {};
+    if (q.name) {
+        where.name = { contains: q.name, mode: 'insensitive' };
+    }
+    if (q.menuType) {
+        where.menuTypes = { some: { name: q.menuType } };
+    }
+
     const restaurants = await prisma.restaurant.findMany({
-        orderBy: { name: 'asc' },
+        where,
+        orderBy: { name: q.sort === 'name_desc' ? 'desc' : 'asc' },
         include: {
             menuTypes: { select: { id: true, name: true } },
             reviews: { select: { rating: true } },
         },
     });
 
-    return restaurants.map((restaurant) => {
-        const { reviews, ...r } = restaurant;
+    let result = restaurants.map(({ reviews, ...r }) => ({
+        ...r,
+        avgRating: reviews.length
+            ? reviews.reduce((sum, rev) => sum + rev.rating, 0) / reviews.length
+            : null,
+        reviewCount: reviews.length,
+        distanceKm: null as number | null,
+    }));
 
-        return {
-            ...r,
-            avgRating: reviews.length
-                ? reviews.reduce((sum: number, rev: { rating: number }) => sum + rev.rating, 0) / reviews.length
-                : null,
-            reviewCount: reviews.length,
-        };
-    });
+    if (q.lat !== undefined && q.lng !== undefined) {
+        result = result
+            .map((r) => ({ ...r, distanceKm: haversineKm(q.lat!, q.lng!, r.latitude, r.longitude) }))
+            .filter((r) => (q.radiusKm ? r.distanceKm! <= q.radiusKm : true))
+            .sort((a, b) => a.distanceKm! - b.distanceKm!); // najbliższe na gorze
+    }
+
+    return result;
 }
 
 export async function getRestaurant(id: string) {
@@ -82,4 +99,14 @@ export async function deleteRestaurant(id: string, userId: string) {
         throw err;
     }
     await prisma.restaurant.delete({ where: { id } }); // opinie zniknaja kaskadowo
+}
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371;
+    const toRad = (d: number) => (d * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(a));
 }

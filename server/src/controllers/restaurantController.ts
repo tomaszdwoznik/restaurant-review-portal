@@ -1,10 +1,12 @@
 import type { Request, Response, NextFunction } from 'express';
 import { createRestaurantSchema } from '../validators/restaurant';
+import { listQuerySchema } from '../validators/restaurantQuery';
 import * as service from '../services/restaurantService';
 
-export async function list(_req: Request, res: Response, next: NextFunction) {
+export async function list(req: Request, res: Response, next: NextFunction) {
     try {
-        res.json({ restaurants: await service.listRestaurants() });
+        const query = listQuerySchema.parse(req.query);
+        res.json({ restaurants: await service.listRestaurants(query) });
     } catch (e) { next(e); }
 }
 
