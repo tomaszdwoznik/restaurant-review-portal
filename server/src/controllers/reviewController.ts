@@ -18,3 +18,14 @@ export async function remove(req: Request, res: Response, next: NextFunction) {
         res.status(204).end();
     } catch (e) { next(e); }
 }
+
+export async function search(req: Request, res: Response, next: NextFunction) {
+    try {
+        const q = String(req.query.q ?? '').trim();
+        if (!q) {
+            res.json({ reviews: [] });
+            return;
+        }
+        res.json({ reviews: await service.searchReviews(q) });
+    } catch (e) { next(e); }
+}

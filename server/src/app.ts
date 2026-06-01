@@ -5,6 +5,7 @@ import { errorHandler } from './middleware/errorHandler';
 import { authRouter } from './routes/authRoutes';
 import { restaurantRouter } from './routes/restaurantRoutes';
 import { menuTypeRouter } from './routes/menuTypeRoutes';
+import { reviewRouter } from './routes/reviewRoutes';
 
 export function createApp() {
     const app = express();
@@ -20,6 +21,7 @@ export function createApp() {
     app.use('/api/auth', authRouter);
     app.use('/api/restaurants', restaurantRouter);
     app.use('/api/menu-types', menuTypeRouter);
+    app.use('/api/reviews', reviewRouter);
 
     app.use(errorHandler);
     return app;

@@ -2,6 +2,15 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../config/prisma';
 import type { CreateReviewInput } from '../validators/review';
 
+export interface ReviewSearchRow {
+    id: string;
+    comment: string | null;
+    rating: number;
+    restaurantId: string;
+    restaurantName: string;
+    rank: number;
+}
+
 export async function addReview(userId: string, restaurantId: string, input: CreateReviewInput) {
     const restaurant = await prisma.restaurant.findUnique({
         where: { id: restaurantId },
@@ -35,4 +44,17 @@ export async function deleteReview(userId: string, restaurantId: string) {
         err.status = 404;
         throw err;
     }
+}
+
+export async function searchReviews(q: string) {
+    return prisma.$queryRaw<ReviewSearchRow[]>`
+    SELECT r.id, r.comment, r.rating, r."restaurantId",
+            rest.name AS "restaurantName",
+            ts_rank(r."commentSearch", plainto_tsquery('simple', ${q})) AS rank
+    FROM "Review" r
+    JOIN "Restaurant" rest ON rest.id = r."restaurantId"
+    WHERE r."commentSearch" @@ plainto_tsquery('simple', ${q})
+    ORDER BY rank DESC
+    LIMIT 50;
+`;
 }
