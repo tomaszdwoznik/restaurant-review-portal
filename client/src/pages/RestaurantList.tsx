@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { Link } from 'react-router-dom';
+import { Star } from 'lucide-react';
 
 interface Restaurant {
     id: string;
@@ -31,16 +33,30 @@ export default function RestaurantList() {
                     <li key={r.id} className="overflow-hidden rounded-lg border bg-white shadow-sm">
                         {r.photoUrl && <img src={r.photoUrl} alt={r.name} className="h-40 w-full object-cover" />}
                         <div className="p-4">
-                            <h2 className="text-lg font-semibold">{r.name}</h2>
+                            <Link to={`/restaurants/${r.id}`} className="text-lg font-semibold hover:underline">
+                                {r.name}
+                            </Link>
                             <p className="text-sm text-gray-500">{r.address}</p>
                             <div className="mt-2 flex flex-wrap gap-1">
                                 {r.menuTypes.map((m) => (
-                                    <span key={m.id} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs">{m.name}</span>
+                                    <span key={m.id} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs">
+                                        {m.name}
+                                    </span>
                                 ))}
                             </div>
-                            <p className="mt-2 text-sm">
-                                {r.avgRating !== null ? `⭐ ${r.avgRating.toFixed(1)} (${r.reviewCount})` : 'Brak ocen'}
-                            </p>
+                            <div className="mt-2 flex items-center gap-1 text-sm">
+                                {r.avgRating !== null ? (
+                                    <>
+                                        <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                                        <span>
+                                            {r.avgRating.toFixed(1)} ({r.reviewCount})
+                                        </span>
+                                    </>
+                                ) : (
+                                    <span className="text-gray-500">Brak ocen</span>
+                                )}
+                            </div>
+
                         </div>
                     </li>
                 ))}
