@@ -3,6 +3,8 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { errorHandler } from './middleware/errorHandler';
 import { authRouter } from './routes/authRoutes';
+import { restaurantRouter } from './routes/restaurantRoutes';
+import { menuTypeRouter } from './routes/menuTypeRoutes';
 
 export function createApp() {
     const app = express();
@@ -16,6 +18,8 @@ export function createApp() {
     });
 
     app.use('/api/auth', authRouter);
+    app.use('/api/restaurants', restaurantRouter);
+    app.use('/api/menu-types', menuTypeRouter);
 
     app.use(errorHandler);
     return app;
