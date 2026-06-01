@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { errorHandler } from './middleware/errorHandler';
+import { authRouter } from './routes/authRoutes';
 
 export function createApp() {
     const app = express();
@@ -14,7 +15,7 @@ export function createApp() {
         res.json({ status: 'ok' });
     });
 
-    // tu beda routery
+    app.use('/api/auth', authRouter);
 
     app.use(errorHandler);
     return app;
