@@ -11,5 +11,64 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String          
+  displayName  String?
+  createdAt    DateTime @default(now())
+  restaurants  Restaurant[]
+  reviews      Review[]
+  resetTokens  PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique            
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model Restaurant {
+  id        String   @id @default(cuid())
+  name      String
+  address   String 
+  latitude  Float  
+  longitude Float
+  photoUrl  String?
+  createdAt DateTime @default(now())
+  ownerId   String 
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  menuTypes MenuType[]                    
+  reviews   Review[]
+
+  @@index([name])
+}
+
+model MenuType {
+  id          String       @id @default(cuid())
+  name        String       @unique        
+  restaurants Restaurant[]                
+}
+
+model Review {
+  id           String   @id @default(cuid())
+  rating       Int                         
+  comment      String?                     
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  commentSearch Unsupported("tsvector")?
+  @@unique([userId, restaurantId])
+  @@index([restaurantId])
 }
