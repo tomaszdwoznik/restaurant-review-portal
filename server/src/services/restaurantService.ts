@@ -10,15 +10,12 @@ export async function listRestaurants() {
         },
     });
 
-    // Zamiast destrukturyzacji w parametrze, używamy po prostu 'restaurant'
     return restaurants.map((restaurant) => {
-        // Wyciągamy 'reviews' i resztę danych już wewnątrz ciała funkcji
         const { reviews, ...r } = restaurant;
 
         return {
             ...r,
             avgRating: reviews.length
-                // Dodajemy jawne typowanie dla 'sum' oraz 'rev'
                 ? reviews.reduce((sum: number, rev: { rating: number }) => sum + rev.rating, 0) / reviews.length
                 : null,
             reviewCount: reviews.length,
