@@ -47,13 +47,22 @@ export async function deleteReview(userId: string, restaurantId: string) {
 }
 
 export async function searchReviews(q: string) {
+    const tsquery = q
+        .split(/\s+/)
+        .map((word) => word.replace(/[^\p{L}\p{N}]/gu, ''))
+        .filter(Boolean)
+        .map((word) => `${word}:*`)
+        .join(' & ');
+
+    if (!tsquery) return [];
+
     return prisma.$queryRaw<ReviewSearchRow[]>`
     SELECT r.id, r.comment, r.rating, r."restaurantId",
             rest.name AS "restaurantName",
-            ts_rank(r."commentSearch", plainto_tsquery('simple', ${q})) AS rank
+            ts_rank(r."commentSearch", to_tsquery('simple', ${tsquery})) AS rank
     FROM "Review" r
     JOIN "Restaurant" rest ON rest.id = r."restaurantId"
-    WHERE r."commentSearch" @@ plainto_tsquery('simple', ${q})
+    WHERE r."commentSearch" @@ to_tsquery('simple', ${tsquery})
     ORDER BY rank DESC
     LIMIT 50;
 `;
