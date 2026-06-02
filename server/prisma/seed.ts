@@ -7,7 +7,7 @@ async function main() {
     await prisma.review.deleteMany();
     await prisma.restaurant.deleteMany();
 
-    const menuNames = ['Italian', 'Vegan', 'Japanese', 'American', 'Polish', 'Indian'];
+    const menuNames = ['Włoska', 'Wegańska', 'Japońska', 'Amerykańska', 'Polska', 'Indyjska'];
     const menu: Record<string, { id: string }> = {};
     for (const name of menuNames) {
         menu[name] = await prisma.menuType.upsert({
@@ -37,7 +37,7 @@ async function main() {
             longitude: 19.9373,
             photoUrl: 'https://picsum.photos/seed/trattoria/600/400',
             ownerId: alice.id,
-            menuTypes: { connect: [{ id: menu['Italian'].id }] },
+            menuTypes: { connect: [{ id: menu['Włoska'].id }] },
         },
     });
     const greenBowl = await prisma.restaurant.create({
@@ -48,7 +48,7 @@ async function main() {
             longitude: 19.93,
             photoUrl: 'https://picsum.photos/seed/greenbowl/600/400',
             ownerId: alice.id,
-            menuTypes: { connect: [{ id: menu['Vegan'].id }, { id: menu['Indian'].id }] },
+            menuTypes: { connect: [{ id: menu['Wegańska'].id }, { id: menu['Indyjska'].id }] },
         },
     });
     const sakura = await prisma.restaurant.create({
@@ -59,7 +59,7 @@ async function main() {
             longitude: 19.94,
             photoUrl: 'https://picsum.photos/seed/sakura/600/400',
             ownerId: bob.id,
-            menuTypes: { connect: [{ id: menu['Japanese'].id }] },
+            menuTypes: { connect: [{ id: menu['Japońska'].id }] },
         },
     });
     const burger = await prisma.restaurant.create({
@@ -70,7 +70,7 @@ async function main() {
             longitude: 19.97,
             photoUrl: 'https://picsum.photos/seed/burger/600/400',
             ownerId: bob.id,
-            menuTypes: { connect: [{ id: menu['American'].id }] },
+            menuTypes: { connect: [{ id: menu['Amerykańska'].id }] },
         },
     });
     const staryMlyn = await prisma.restaurant.create({
@@ -81,7 +81,7 @@ async function main() {
             longitude: 21.019,
             photoUrl: 'https://picsum.photos/seed/mlyn/600/400',
             ownerId: alice.id,
-            menuTypes: { connect: [{ id: menu['Polish'].id }] },
+            menuTypes: { connect: [{ id: menu['Polska'].id }] },
         },
     });
 
