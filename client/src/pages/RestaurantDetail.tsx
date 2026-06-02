@@ -3,10 +3,11 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import ConfirmDialog from '../components/ConfirmDialog';
-import StarRating from '../components/StarRating';
 import { Star } from 'lucide-react';
 import { toast } from 'sonner';
+import ConfirmDialog from '../components/ConfirmDialog';
+import StarRating from '../components/StarRating';
+import RestaurantMap from '../components/RestaurantMap';
 
 interface Review {
     id: string;
@@ -20,6 +21,8 @@ interface RestaurantDetail {
     id: string;
     name: string;
     address: string;
+    latitude: number;
+    longitude: number;
     photoUrl: string | null;
     menuTypes: { id: string; name: string }[];
     owner: { id: string; displayName: string | null };
@@ -118,6 +121,10 @@ export default function RestaurantDetail() {
                     {data.owner.displayName && (
                         <p className="mt-3 text-xs text-gray-400">Dodał: {data.owner.displayName}</p>
                     )}
+                    <div className="mt-4">
+                        <h3 className="mb-1 text-sm font-medium text-gray-600">Lokalizacja</h3>
+                        <RestaurantMap latitude={data.latitude} longitude={data.longitude} name={data.name} />
+                    </div>
                     {user && data.owner.id === user.id && (
                         <button
                             onClick={() => setConfirmDeleteRestaurant(true)}
