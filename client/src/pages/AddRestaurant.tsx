@@ -2,6 +2,7 @@ import { useState, useRef, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { toast } from 'sonner';
 import LocationPicker from '../components/LocationPicker';
 
 interface MenuType { id: string; name: string }
@@ -38,9 +39,14 @@ export default function AddRestaurant() {
             }),
         onSuccess: (res) => {
             queryClient.invalidateQueries({ queryKey: ['restaurants'] });
+            toast.success('Dodano restaurację');
             navigate(`/restaurants/${res.data.restaurant.id}`);
         },
-        onError: (e: any) => setError(e.response?.data?.error ?? 'Nie udało się dodać restauracji'),
+        onError: (e: any) => {
+            const msg = e.response?.data?.error ?? 'Nie udało się dodać restauracji';
+            setError(msg);
+            toast.error(msg);
+        },
     });
 
     async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {

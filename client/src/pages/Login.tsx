@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'sonner';
 
 const schema = z.object({
     email: z.email('Nieprawidłowy e-mail'),
@@ -22,6 +23,7 @@ export default function Login() {
         setServerError(null);
         try {
             await login(data.email, data.password);
+            toast.success('Zalogowano');
             navigate('/');
         } catch (e: any) {
             setServerError(e.response?.data?.error ?? 'Błąd logowania');

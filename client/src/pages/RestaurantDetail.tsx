@@ -5,6 +5,7 @@ import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { Star } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Review {
     id: string;
@@ -38,7 +39,8 @@ export default function RestaurantDetail() {
         mutationFn: () => api.delete(`/restaurants/${id}`),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['restaurants'] });
-            navigate('/'); // restauracji już nie ma — wracamy na listę
+            toast.success('Usunięto restaurację');
+            navigate('/');
         },
     });
 
@@ -63,13 +65,17 @@ export default function RestaurantDetail() {
     const addReview = useMutation({
         mutationFn: () =>
             api.post(`/restaurants/${id}/reviews`, { rating, comment: comment.trim() || undefined }),
-        onSuccess: () => { setComment(''); setRating(5); setFormError(null); refresh(); },
-        onError: (e: any) => setFormError(e.response?.data?.error ?? 'Nie udało się dodać opinii'),
+        onSuccess: () => { setComment(''); setRating(5); setFormError(null); refresh(); toast.success('Dodano opinię'); },
+        onError: (e: any) => {
+            const msg = e.response?.data?.error ?? 'Nie udało się dodać opinii';
+            setFormError(msg);
+            toast.error(msg);
+        },
     });
 
     const deleteReview = useMutation({
         mutationFn: () => api.delete(`/restaurants/${id}/reviews`),
-        onSuccess: () => { setConfirmOpen(false); refresh(); },
+        onSuccess: () => { setConfirmOpen(false); refresh(); toast.success('Usunięto opinię'); },
     });
 
     if (isLoading) return <p>Ładowanie…</p>;

@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'sonner';
 
 const schema = z
     .object({
@@ -30,6 +31,7 @@ export default function Register() {
         setServerError(null);
         try {
             await registerUser(data.email, data.password, data.displayName);
+            toast.success('Konto utworzone');
             navigate('/');
         } catch (e: any) {
             setServerError(e.response?.data?.error ?? 'Błąd rejestracji');

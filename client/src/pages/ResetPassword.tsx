@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { api } from '../lib/api';
+import { toast } from 'sonner';
 
 export default function ResetPassword() {
     const [params] = useSearchParams();
@@ -20,10 +21,12 @@ export default function ResetPassword() {
         setLoading(true);
         try {
             await api.post('/auth/reset-password', { token, password });
-            alert('Hasło zmienione. Zaloguj się nowym hasłem.');
+            toast.success('Hasło zmienione. Zaloguj się nowym hasłem.');
             navigate('/login');
         } catch (e: any) {
-            setError(e.response?.data?.error ?? 'Nie udało się zresetować hasła.');
+            const msg = e.response?.data?.error ?? 'Nie udało się zresetować hasła.';
+            setError(msg);
+            toast.error(msg);
         } finally {
             setLoading(false);
         }
