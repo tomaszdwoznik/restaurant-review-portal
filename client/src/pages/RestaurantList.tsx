@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { Star, MapPin } from 'lucide-react';
 import { api } from '../lib/api';
@@ -25,6 +25,8 @@ export default function RestaurantList() {
     const [lat, setLat] = useState('50.0617');
     const [lng, setLng] = useState('19.9373');
     const [radiusKm, setRadiusKm] = useState('5');
+
+    const navigate = useNavigate();
 
     const { data: menuTypes } = useQuery({
         queryKey: ['menu-types'],
@@ -103,7 +105,11 @@ export default function RestaurantList() {
             ) : (
                 <ul className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 ${isFetching ? 'opacity-60' : ''}`}>
                     {data!.map((r) => (
-                        <li key={r.id} className="overflow-hidden rounded-lg border bg-white shadow-sm">
+                        <li
+                            key={r.id}
+                            onClick={() => navigate(`/restaurants/${r.id}`)}
+                            className="cursor-pointer overflow-hidden rounded-lg border bg-white shadow-sm transition hover:shadow-md"
+                        >
                             {r.photoUrl && <img src={r.photoUrl} alt={r.name} className="h-40 w-full object-cover" />}
                             <div className="p-4">
                                 <Link to={`/restaurants/${r.id}`} className="text-lg font-semibold hover:underline">
