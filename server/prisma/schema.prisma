@@ -19,9 +19,10 @@ model User {
   passwordHash String          
   displayName  String
   createdAt    DateTime @default(now())
-  restaurants  Restaurant[]
+  restaurants  Restaurant[] @relation("OwnedRestaurants")
   reviews      Review[]
   resetTokens  PasswordResetToken[]
+  favorites    Restaurant[] @relation("UserFavorites")
 }
 
 model PasswordResetToken {
@@ -45,9 +46,10 @@ model Restaurant {
   photoUrl  String?
   createdAt DateTime @default(now())
   ownerId   String 
-  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner     User     @relation("OwnedRestaurants", fields: [ownerId], references: [id], onDelete: Cascade)  
   menuTypes MenuType[]                    
   reviews   Review[]
+  favoritedBy  User[]       @relation("UserFavorites")
 
   @@index([name])
 }

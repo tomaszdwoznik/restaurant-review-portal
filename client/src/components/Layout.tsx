@@ -16,6 +16,9 @@ export default function Layout() {
                                 <Link to="/restaurants/new" className="rounded bg-green-600 px-3 py-1 text-white hover:bg-green-700">
                                     + Dodaj restaurację
                                 </Link>
+                                <Link to="/favorites" className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
+                                    Ulubione restauracje
+                                </Link>
                                 <span className="text-gray-600">{user.displayName ?? user.email}</span>
                                 <button onClick={() => logout()} className="rounded bg-gray-200 px-3 py-1 hover:bg-gray-300">
                                     Wyloguj

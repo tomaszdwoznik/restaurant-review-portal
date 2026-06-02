@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { Star, MapPin, Search } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
+import { Star, MapPin, Search, Heart } from 'lucide-react';
 import { api } from '../lib/api';
 import { geocodeAddress } from '../lib/geocode';
+import { useAuth } from '../context/AuthContext';
 
 interface Restaurant {
     id: string;
@@ -13,6 +14,7 @@ interface Restaurant {
     avgRating: number | null;
     reviewCount: number;
     distanceKm: number | null;
+    isFavorite: boolean;
     menuTypes: { id: string; name: string }[];
 }
 
@@ -20,6 +22,8 @@ interface MenuType { id: string; name: string }
 
 export default function RestaurantList() {
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const queryClient = useQueryClient();
 
     const [name, setName] = useState('');
     const [sort, setSort] = useState<'name_asc' | 'name_desc'>('name_asc');
@@ -52,6 +56,12 @@ export default function RestaurantList() {
             return res.data.restaurants;
         },
         placeholderData: keepPreviousData,
+    });
+
+    const toggleFavorite = useMutation({
+        mutationFn: ({ id, isFav }: { id: string; isFav: boolean }) =>
+            isFav ? api.delete(`/restaurants/${id}/favorite`) : api.post(`/restaurants/${id}/favorite`),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['restaurants'] }),
     });
 
     async function findNear() {
@@ -140,8 +150,17 @@ export default function RestaurantList() {
                         <li
                             key={r.id}
                             onClick={() => navigate(`/restaurants/${r.id}`)}
-                            className="cursor-pointer overflow-hidden rounded-lg border bg-white shadow-sm transition hover:shadow-md"
+                            className="relative cursor-pointer overflow-hidden rounded-lg border bg-white shadow-sm transition hover:shadow-md"
                         >
+                            {user && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); toggleFavorite.mutate({ id: r.id, isFav: r.isFavorite }); }}
+                                    aria-label={r.isFavorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
+                                    className="absolute right-2 top-2 z-10 rounded-full bg-white/90 p-1.5 shadow transition hover:bg-white hover:scale-110"
+                                >
+                                    <Heart className={`h-5 w-5 ${r.isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} />
+                                </button>
+                            )}
                             {r.photoUrl && <img src={r.photoUrl} alt={r.name} className="h-40 w-full object-cover" />}
                             <div className="p-4">
                                 <Link to={`/restaurants/${r.id}`} className="text-lg font-semibold hover:underline">

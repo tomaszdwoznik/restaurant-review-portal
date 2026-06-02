@@ -9,6 +9,7 @@ import SearchReviews from './pages/SearchReviews';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import Favorites from './pages/Favorites';
 
 export default function App() {
     return (
@@ -17,7 +18,7 @@ export default function App() {
                 <Route path="/" element={<RestaurantList />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-
+                <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/search" element={<ProtectedRoute><SearchReviews /></ProtectedRoute>} />
