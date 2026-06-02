@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
@@ -30,6 +30,17 @@ export default function RestaurantDetail() {
     const { id } = useParams<{ id: string }>();
     const { user } = useAuth();
     const queryClient = useQueryClient();
+
+    const navigate = useNavigate();
+    const [confirmDeleteRestaurant, setConfirmDeleteRestaurant] = useState(false);
+
+    const deleteRestaurant = useMutation({
+        mutationFn: () => api.delete(`/restaurants/${id}`),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['restaurants'] });
+            navigate('/'); // restauracji już nie ma — wracamy na listę
+        },
+    });
 
     const { data, isLoading, isError } = useQuery({
         queryKey: ['restaurant', id],
@@ -99,6 +110,14 @@ export default function RestaurantDetail() {
                     </div>
                     {data.owner.displayName && (
                         <p className="mt-3 text-xs text-gray-400">Dodał: {data.owner.displayName}</p>
+                    )}
+                    {user && data.owner.id === user.id && (
+                        <button
+                            onClick={() => setConfirmDeleteRestaurant(true)}
+                            className="mt-3 rounded bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-700"
+                        >
+                            Usuń restaurację
+                        </button>
                     )}
                 </div>
             </div>
@@ -183,6 +202,14 @@ export default function RestaurantDetail() {
                 message="Tej operacji nie można cofnąć. Po usunięciu możesz wystawić nową ocenę."
                 onConfirm={() => deleteReview.mutate()}
                 onCancel={() => setConfirmOpen(false)}
+            />
+
+            <ConfirmDialog
+                open={confirmDeleteRestaurant}
+                title="Usunąć restaurację?"
+                message="Tej operacji nie można cofnąć. Usunięte zostaną także wszystkie opinie o tej restauracji."
+                onConfirm={() => deleteRestaurant.mutate()}
+                onCancel={() => setConfirmDeleteRestaurant(false)}
             />
         </div>
     );
