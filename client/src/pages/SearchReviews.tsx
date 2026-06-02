@@ -11,6 +11,7 @@ interface ReviewHit {
     rating: number;
     restaurantId: string;
     restaurantName: string;
+    highlightedComment: string | null;
     rank: number;
 }
 
@@ -68,8 +69,12 @@ export default function SearchReviews() {
                                 {hit.rating}
                             </span>
                         </div>
-                        {hit.comment && <p className="mt-1 text-sm text-gray-700">{hit.comment}</p>}
-                    </li>
+                        {hit.highlightedComment && (
+                            <p
+                                className="mt-1 text-sm text-gray-700 [&_mark]:rounded [&_mark]:bg-yellow-200 [&_mark]:px-0.5"
+                                dangerouslySetInnerHTML={{ __html: hit.highlightedComment }}
+                            />
+                        )}                    </li>
                 ))}
             </ul>
         </div>

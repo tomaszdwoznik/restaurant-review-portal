@@ -8,6 +8,7 @@ export interface ReviewSearchRow {
     rating: number;
     restaurantId: string;
     restaurantName: string;
+    highlightedComment: string | null;
     rank: number;
 }
 
@@ -59,7 +60,11 @@ export async function searchReviews(q: string) {
     return prisma.$queryRaw<ReviewSearchRow[]>`
     SELECT r.id, r.comment, r.rating, r."restaurantId",
             rest.name AS "restaurantName",
-            ts_rank(r."commentSearch", to_tsquery('simple', ${tsquery})) AS rank
+            ts_rank(r."commentSearch", to_tsquery('simple', ${tsquery})) AS rank,
+            ts_headline(
+                'simple', coalesce(r.comment, ''), to_tsquery('simple', ${tsquery}),
+                'StartSel=<mark>, StopSel=</mark>, HighlightAll=true'
+            ) AS "highlightedComment"
     FROM "Review" r
     JOIN "Restaurant" rest ON rest.id = r."restaurantId"
     WHERE r."commentSearch" @@ to_tsquery('simple', ${tsquery})
