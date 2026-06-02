@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useRef, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
@@ -19,6 +19,29 @@ export default function AddRestaurant() {
     const [photoUrl, setPhotoUrl] = useState('');
     const [menuIds, setMenuIds] = useState<string[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const [uploading, setUploading] = useState(false);
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [fileName, setFileName] = useState('');
+
+    async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setFileName(file.name);
+        setUploading(true);
+        setError(null);
+        try {
+            const form = new FormData();
+            form.append('photo', file);
+            const res = await api.post<{ url: string }>('/upload', form);
+            setPhotoUrl(res.data.url);
+        } catch (e: any) {
+            setError(e.response?.data?.error ?? 'Nie udało się wgrać zdjęcia');
+        } finally {
+            setUploading(false);
+        }
+    }
+
     const { data: menuTypes } = useQuery({
         queryKey: ['menu-types'],
         queryFn: async () => {
@@ -78,8 +101,34 @@ export default function AddRestaurant() {
                     </label>
                 </div>
 
-                <input value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="URL zdjęcia (opcjonalnie)"
-                    className="w-full rounded border px-3 py-2" />
+                <div>
+                    <label className="block text-sm font-medium">Zdjęcie (opcjonalnie)</label>
+                    <div className="mt-1 flex items-center gap-3">
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFile}
+                            disabled={uploading}
+                            className="hidden"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploading}
+                            className="rounded border border-gray-300 bg-gray-50 px-3 py-1.5 text-sm hover:bg-gray-100 disabled:opacity-50"
+                        >
+                            Wybierz zdjęcie
+                        </button>
+                        <span className="text-sm text-gray-500">
+                            {fileName || 'Nie wybrano pliku'}
+                        </span>
+                    </div>
+                    {uploading && <p className="mt-1 text-sm text-gray-500">Wgrywanie…</p>}
+                    {photoUrl && (
+                        <img src={photoUrl} alt="podgląd" className="mt-2 h-32 rounded object-cover" />
+                    )}
+                </div>
 
                 <fieldset className="rounded border p-3">
                     <legend className="px-1 text-sm font-medium">Rodzaje menu</legend>
