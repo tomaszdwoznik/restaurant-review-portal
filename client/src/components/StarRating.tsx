@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default function StarRating({ value, onChange, max = 5 }: Props) {
-    const [hover, setHover] = useState(0); 
+    const [hover, setHover] = useState(0);
 
     return (
         <div className="flex items-center gap-1" onMouseLeave={() => setHover(0)}>
