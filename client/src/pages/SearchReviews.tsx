@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { Star, Search } from 'lucide-react';
 import { api } from '../lib/api';
+import { useDebounce } from '../hooks/useDebounce';
 
 interface ReviewHit {
     id: string;
@@ -15,48 +16,38 @@ interface ReviewHit {
 
 export default function SearchReviews() {
     const [input, setInput] = useState('');
-    const [query, setQuery] = useState('');
+    const query = useDebounce(input.trim(), 200);
 
     const { data, isFetching, isError } = useQuery({
         queryKey: ['review-search', query],
         queryFn: async () => {
-            if (!query.trim()) return [];
             const res = await api.get<{ reviews: ReviewHit[] }>(
                 `/reviews/search?q=${encodeURIComponent(query)}`,
             );
             return res.data.reviews;
         },
-        enabled: query.trim().length > 0,
+        enabled: query.length > 0,
         placeholderData: keepPreviousData,
     });
-
-    function submit(e: React.FormEvent) {
-        e.preventDefault();
-        setQuery(input.trim());
-    }
 
     return (
         <div>
             <h1 className="mb-4 text-2xl font-bold">Wyszukaj w komentarzach</h1>
 
-            <form onSubmit={submit} className="mb-6 flex gap-2">
+            <div className="relative mb-6">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="np. pizza, ramen, pierogi…"
-                    className="flex-1 rounded border px-3 py-2"
+                    className="w-full rounded border px-3 py-2 pl-9"
+                    autoFocus
                 />
-                <button
-                    type="submit"
-                    className="flex items-center gap-1 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                >
-                    <Search className="h-4 w-4" /> Szukaj
-                </button>
-            </form>
+            </div>
 
             {isError && <p className="text-red-600">Błąd wyszukiwania.</p>}
 
-            {query.trim() && !isFetching && data && (
+            {query.length > 0 && data && (
                 <p className="mb-3 text-sm text-gray-500">
                     Znaleziono {data.length} {data.length === 1 ? 'wynik' : 'wyników'} dla „{query}".
                 </p>
