@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
-import { registerSchema, loginSchema } from '../validators/auth';
-import { registerUser, loginUser } from '../services/authService';
+import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from '../validators/auth';
+import { registerUser, loginUser, requestPasswordReset, resetPassword } from '../services/authService';
 import { signToken } from '../utils/jwt';
 
 const COOKIE = 'token';
@@ -40,4 +40,23 @@ export function logout(_req: Request, res: Response) {
 
 export function me(req: Request, res: Response) {
     res.json({ user: req.user });
+}
+
+export async function forgotPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { email } = forgotPasswordSchema.parse(req.body);
+        const token = await requestPasswordReset(email);
+        res.json({
+            message: 'Jeśli konto istnieje, wygenerowano link do resetu hasła.',
+            ...(token && process.env.NODE_ENV !== 'production' ? { devToken: token } : {}),
+        });
+    } catch (e) { next(e); }
+}
+
+export async function resetPasswordHandler(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { token, password } = resetPasswordSchema.parse(req.body);
+        await resetPassword(token, password);
+        res.json({ message: 'Hasło zostało zmienione. Możesz się zalogować.' });
+    } catch (e) { next(e); }
 }

@@ -51,6 +51,9 @@ export default function Login() {
             <p className="mt-3 text-center text-sm text-gray-500">
                 Nie masz konta? <Link to="/register" className="text-blue-600 hover:underline">Zarejestruj się</Link>
             </p>
+            <p className="mt-1 text-center text-sm">
+                <Link to="/forgot-password" className="text-blue-600 hover:underline">Nie pamiętasz hasła?</Link>
+            </p>
         </div>
     );
 }
