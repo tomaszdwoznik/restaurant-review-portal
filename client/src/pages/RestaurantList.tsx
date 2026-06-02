@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { Star, MapPin } from 'lucide-react';
+import { Star, MapPin, Search } from 'lucide-react';
 import { api } from '../lib/api';
+import { geocodeAddress } from '../lib/geocode';
 
 interface Restaurant {
     id: string;
@@ -18,15 +19,17 @@ interface Restaurant {
 interface MenuType { id: string; name: string }
 
 export default function RestaurantList() {
+    const navigate = useNavigate();
+
     const [name, setName] = useState('');
     const [sort, setSort] = useState<'name_asc' | 'name_desc'>('name_asc');
     const [menuType, setMenuType] = useState('');
     const [nearby, setNearby] = useState(false);
-    const [lat, setLat] = useState('50.0617');
-    const [lng, setLng] = useState('19.9373');
+    const [nearAddress, setNearAddress] = useState('');
+    const [nearCoords, setNearCoords] = useState<{ lat: number; lng: number } | null>(null);
     const [radiusKm, setRadiusKm] = useState('5');
-
-    const navigate = useNavigate();
+    const [geoSearching, setGeoSearching] = useState(false);
+    const [geoError, setGeoError] = useState<string | null>(null);
 
     const { data: menuTypes } = useQuery({
         queryKey: ['menu-types'],
@@ -34,15 +37,15 @@ export default function RestaurantList() {
     });
 
     const { data, isLoading, isError, isFetching } = useQuery({
-        queryKey: ['restaurants', { name, sort, menuType, nearby, lat, lng, radiusKm }],
+        queryKey: ['restaurants', { name, sort, menuType, nearby, nearCoords, radiusKm }],
         queryFn: async () => {
             const params = new URLSearchParams();
             if (name) params.set('name', name);
             if (sort) params.set('sort', sort);
             if (menuType) params.set('menuType', menuType);
-            if (nearby) {
-                params.set('lat', lat);
-                params.set('lng', lng);
+            if (nearby && nearCoords) {
+                params.set('lat', String(nearCoords.lat));
+                params.set('lng', String(nearCoords.lng));
                 params.set('radiusKm', radiusKm);
             }
             const res = await api.get<{ restaurants: Restaurant[] }>(`/restaurants?${params}`);
@@ -50,6 +53,21 @@ export default function RestaurantList() {
         },
         placeholderData: keepPreviousData,
     });
+
+    async function findNear() {
+        if (!nearAddress.trim()) return;
+        setGeoSearching(true);
+        setGeoError(null);
+        try {
+            const c = await geocodeAddress(nearAddress);
+            if (!c) { setGeoError('Nie znaleziono adresu.'); return; }
+            setNearCoords(c);
+        } catch {
+            setGeoError('Błąd wyszukiwania adresu.');
+        } finally {
+            setGeoSearching(false);
+        }
+    }
 
     return (
         <div>
@@ -82,10 +100,17 @@ export default function RestaurantList() {
                     </label>
                     {nearby && (
                         <>
-                            <input value={lat} onChange={(e) => setLat(e.target.value)} type="number" step="any"
-                                className="w-28 rounded border px-2 py-1" placeholder="lat" />
-                            <input value={lng} onChange={(e) => setLng(e.target.value)} type="number" step="any"
-                                className="w-28 rounded border px-2 py-1" placeholder="lng" />
+                            <input
+                                value={nearAddress}
+                                onChange={(e) => setNearAddress(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); findNear(); } }}
+                                placeholder="adres lub miasto, np. Kraków"
+                                className="min-w-[12rem] flex-1 rounded border px-2 py-1"
+                            />
+                            <button type="button" onClick={findNear} disabled={geoSearching}
+                                className="flex items-center gap-1 rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700 disabled:opacity-50">
+                                <Search className="h-3.5 w-3.5" /> {geoSearching ? 'Szukam…' : 'Znajdź'}
+                            </button>
                             <label className="flex items-center gap-1">
                                 promień
                                 <input value={radiusKm} onChange={(e) => setRadiusKm(e.target.value)} type="number"
@@ -94,6 +119,13 @@ export default function RestaurantList() {
                         </>
                     )}
                 </div>
+
+                {nearby && geoError && <p className="text-sm text-red-600">{geoError}</p>}
+                {nearby && nearCoords && !geoError && (
+                    <p className="flex items-center gap-1 text-xs text-gray-500">
+                        <MapPin className="h-3.5 w-3.5" /> Wyszukiwanie wokół: {nearAddress}
+                    </p>
+                )}
             </div>
 
             {isLoading ? (
