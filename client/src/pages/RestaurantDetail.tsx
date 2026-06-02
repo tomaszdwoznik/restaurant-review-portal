@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import ConfirmDialog from '../components/ConfirmDialog';
+import StarRating from '../components/StarRating';
 import { Star } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -153,16 +154,10 @@ export default function RestaurantDetail() {
                     onSubmit={(e) => { e.preventDefault(); addReview.mutate(); }}
                     className="mb-4 space-y-2 rounded-lg border bg-white p-4"
                 >
-                    <label className="block text-sm font-medium">
-                        Ocena
-                        <select
-                            value={rating}
-                            onChange={(e) => setRating(Number(e.target.value))}
-                            className="ml-2 rounded border px-2 py-1"
-                        >
-                            {[5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{n}</option>)}
-                        </select>
-                    </label>
+                    <div>
+                        <label className="mb-1 block text-sm font-medium">Ocena</label>
+                        <StarRating value={rating} onChange={setRating} />
+                    </div>
                     <textarea
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
