@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { toast } from 'sonner';
 import LocationPicker from '../components/LocationPicker';
+import { Upload, Plus, AlertCircle } from 'lucide-react';
 
 interface MenuType { id: string; name: string }
 
@@ -81,50 +82,100 @@ export default function AddRestaurant() {
     }
 
     return (
-        <div className="mx-auto max-w-lg">
-            <h1 className="mb-4 text-2xl font-bold">Dodaj restaurację</h1>
-            <form onSubmit={onSubmit} className="space-y-3">
-                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nazwa"
-                    className="w-full rounded border px-3 py-2" />
-
-                <LocationPicker
-                    address={address}
-                    onAddressChange={setAddress}
-                    coords={coords}
-                    onCoordsChange={setCoords}
-                />
-
+        <div className="mx-auto max-w-xl">
+            <div className="mb-6">
+                <h1 className="text-2xl font-black text-stone-900 tracking-tight">Dodaj nową restaurację</h1>
+                <p className="text-stone-500 text-sm mt-1">Wprowadź dane lokalu, aby inni mogli go oceniać.</p>
+            </div>
+            
+            <form onSubmit={onSubmit} className="space-y-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-stone-900/5">
                 <div>
-                    <label className="block text-sm font-medium">Zdjęcie (opcjonalnie)</label>
-                    <div className="mt-1 flex items-center gap-3">
-                        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFile}
-                            disabled={uploading} className="hidden" />
-                        <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}
-                            className="rounded border border-gray-300 bg-gray-50 px-3 py-1.5 text-sm hover:bg-gray-100 disabled:opacity-50">
-                            Wybierz zdjęcie
-                        </button>
-                        <span className="text-sm text-gray-500">{fileName || 'Nie wybrano pliku'}</span>
-                    </div>
-                    {uploading && <p className="mt-1 text-sm text-gray-500">Wgrywanie…</p>}
-                    {photoUrl && <img src={photoUrl} alt="podgląd" className="mt-2 h-32 rounded object-cover" />}
+                    <label className="block text-sm font-semibold text-stone-700 mb-1.5">Nazwa restauracji</label>
+                    <input 
+                        value={name} 
+                        onChange={(e) => setName(e.target.value)} 
+                        placeholder="np. Pizzeria Bella Italia"
+                        className="w-full rounded-xl bg-stone-50 border border-stone-200 px-4 py-2.5 text-stone-900 outline-none transition-all placeholder:text-stone-400 focus:bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent" 
+                    />
                 </div>
 
-                <fieldset className="rounded border p-3">
-                    <legend className="px-1 text-sm font-medium">Rodzaje menu</legend>
-                    <div className="flex flex-wrap gap-3">
-                        {menuTypes?.map((m) => (
-                            <label key={m.id} className="flex items-center gap-1 text-sm">
-                                <input type="checkbox" checked={menuIds.includes(m.id)} onChange={() => toggleMenu(m.id)} />
-                                {m.name}
-                            </label>
-                        ))}
+                <div>
+                    <label className="block text-sm font-semibold text-stone-700 mb-1.5">Lokalizacja i adres</label>
+                    <div className="rounded-xl overflow-hidden border border-stone-200 p-1 bg-stone-50">
+                        <LocationPicker
+                            address={address}
+                            onAddressChange={setAddress}
+                            coords={coords}
+                            onCoordsChange={setCoords}
+                        />
                     </div>
-                </fieldset>
+                </div>
 
-                {error && <p className="text-sm text-red-600">{error}</p>}
-                <button type="submit" disabled={create.isPending || uploading}
-                    className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50">
-                    {create.isPending ? 'Dodawanie…' : 'Dodaj restaurację'}
+                <div>
+                    <label className="block text-sm font-semibold text-stone-700 mb-1.5">Zdjęcie lokalu</label>
+                    <div className="mt-1 rounded-xl border border-dashed border-stone-300 p-4 bg-stone-50/50 flex flex-col items-center justify-center text-center">
+                        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFile} disabled={uploading} className="hidden" />
+                        <button 
+                            type="button" 
+                            onClick={() => fileInputRef.current?.click()} 
+                            disabled={uploading}
+                            className="flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 shadow-sm hover:bg-stone-50 disabled:opacity-50 transition-colors"
+                        >
+                            <Upload className="h-4 w-4 text-stone-500" />
+                            Wybierz plik graficzny
+                        </button>
+                        <span className="mt-2 text-xs text-stone-500 max-w-xs truncate">{fileName || 'Nie wybrano żadnego pliku'}</span>
+                        
+                        {uploading && <p className="mt-2 text-sm text-orange-600 font-medium animate-pulse">Wgrywanie zdjęcia...</p>}
+                        {photoUrl && (
+                            <div className="mt-4 relative rounded-xl overflow-hidden shadow-inner border border-stone-200 bg-white p-1">
+                                <img src={photoUrl} alt="podgląd" className="h-32 w-full object-cover rounded-lg" />
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-semibold text-stone-700 mb-2">Rodzaje oferowanego menu</label>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 rounded-xl border border-stone-200 p-4 bg-stone-50/50">
+                        {menuTypes?.map((m) => {
+                            const isChecked = menuIds.includes(m.id);
+                            return (
+                                <label 
+                                    key={m.id} 
+                                    className={`flex items-center gap-2 rounded-lg border p-2.5 text-sm font-medium cursor-pointer transition-all select-none ${
+                                        isChecked 
+                                            ? 'bg-orange-50 border-orange-300 text-orange-900 shadow-sm' 
+                                            : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-100'
+                                    }`}
+                                >
+                                    <input 
+                                        type="checkbox" 
+                                        checked={isChecked} 
+                                        onChange={() => toggleMenu(m.id)} 
+                                        className="h-4 w-4 rounded border-stone-300 text-orange-600 focus:ring-orange-500 accent-orange-600"
+                                    />
+                                    <span>{m.name}</span>
+                                </label>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {error && (
+                    <div className="flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3.5 text-sm text-rose-700">
+                        <AlertCircle className="h-4 w-4 shrink-0" />
+                        <span>{error}</span>
+                    </div>
+                )}
+
+                <button 
+                    type="submit" 
+                    disabled={create.isPending || uploading}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-600 py-3 font-semibold text-white shadow-md shadow-orange-600/20 hover:bg-orange-700 transition-all disabled:opacity-50"
+                >
+                    <Plus className="h-5 w-5" />
+                    <span>{create.isPending ? 'Dodawanie lokalu…' : 'Dodaj restaurację'}</span>
                 </button>
             </form>
         </div>

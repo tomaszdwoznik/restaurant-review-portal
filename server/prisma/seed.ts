@@ -3,13 +3,9 @@ import argon2 from 'argon2';
 import { prisma } from '../src/config/prisma';
 
 async function main() {
-    // --- Czyszczenie (seed idempotentny — można odpalać wielokrotnie) ---
-    // Kolejność ważna ze względu na klucze obce.
     await prisma.review.deleteMany();
     await prisma.restaurant.deleteMany();
-    // MenuType i User aktualizujemy przez upsert niżej, więc ich nie kasujemy.
 
-    // --- Rodzaje menu po polsku (wym. 4) ---
     const menuNames = [
         'Włoska', 'Wegańska', 'Japońska', 'Amerykańska', 'Polska', 'Indyjska',
         'Meksykańska', 'Tajska', 'Francuska', 'Grecka', 'Turecka', 'Kawiarnia',
@@ -23,7 +19,6 @@ async function main() {
         });
     }
 
-    // --- Użytkownicy (wym. 6) — hasła hashowane argon2 (pozaf. 4) ---
     const passwordHash = await argon2.hash('password123');
     const userDefs = [
         { key: 'alice', email: 'alice@example.com', displayName: 'Alice' },
@@ -42,7 +37,6 @@ async function main() {
         });
     }
 
-    // --- Zdjęcia tematyczne wg kuchni (stałe URL-e — seed ma być powtarzalny) ---
     const photo: Record<string, string> = {
         italian: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80',
         vegan: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80',
@@ -58,9 +52,6 @@ async function main() {
         cafe: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80',
     };
 
-    // --- Restauracje (wym. 7) ---
-    // 12 w Krakowie (~50.06, 19.94) + Warszawa i Wrocław CELOWO daleko,
-    // żeby filtr "w pobliżu" (wym. 3) miał co odcinać.
     const restaurantDefs = [
         { slug: 'trattoria', name: 'Trattoria Soprano', address: 'Rynek Główny 12, Kraków', lat: 50.0617, lng: 19.9373, owner: 'alice', menus: ['Włoska'], photo: 'italian' },
         { slug: 'greenbowl', name: 'Green Bowl', address: 'ul. Karmelicka 5, Kraków', lat: 50.0655, lng: 19.9300, owner: 'alice', menus: ['Wegańska', 'Indyjska'], photo: 'vegan' },
@@ -92,79 +83,61 @@ async function main() {
         });
     }
 
-    // --- Opinie (wym. 8) — max jedna na parę (user, restauracja) ---
-    // Różne słowa w komentarzach => jest co testować w wyszukiwaniu FTS (wym. 11).
-    // commentSearch (kolumna wypełniana triggerem) uzupełni się sam — nie podajemy go.
-    // Kilka opinii bez komentarza pokazuje, że komentarz jest opcjonalny.
     const reviewDefs: { user: string; restaurant: string; rating: number; comment?: string }[] = [
-        // Trattoria Soprano (włoska)
         { user: 'bob', restaurant: 'trattoria', rating: 5, comment: 'Najlepsza pizza neapolitańska w mieście, ciasto idealne. Gorąco polecam!' },
         { user: 'alice', restaurant: 'trattoria', rating: 4, comment: 'Świetne spaghetti carbonara, choć wieczorem bywa głośno.' },
         { user: 'celina', restaurant: 'trattoria', rating: 5, comment: 'Domowe tiramisu rozpływa się w ustach, wrócę tu na pewno.' },
         { user: 'darek', restaurant: 'trattoria', rating: 4 },
 
-        // Green Bowl (wegańska / indyjska)
         { user: 'bob', restaurant: 'greenbowl', rating: 5, comment: 'Pyszne wegańskie curry z ciecierzycą i świeże sałatki.' },
         { user: 'alice', restaurant: 'greenbowl', rating: 4, comment: 'Smaczne bowl z tofu i komosą, obsługa miła i szybka.' },
         { user: 'ewa', restaurant: 'greenbowl', rating: 5, comment: 'Najlepsze wegańskie miejsce w Krakowie, dużo opcji bezglutenowych.' },
 
-        // Sakura Sushi (japońska)
         { user: 'alice', restaurant: 'sakura', rating: 4, comment: 'Najlepszy ramen w okolicy, na sushi trzeba chwilę poczekać.' },
         { user: 'bob', restaurant: 'sakura', rating: 5, comment: 'Świeże sushi i pyszne gyoza, klimatyczne wnętrze.' },
         { user: 'filip', restaurant: 'sakura', rating: 4, comment: 'Dobre maki i ciepła herbata, ceny rozsądne.' },
         { user: 'celina', restaurant: 'sakura', rating: 3 },
 
-        // Burger Republic (amerykańska)
         { user: 'alice', restaurant: 'burger', rating: 3, comment: 'Burger smaczny, ale frytki przyszły zimne, a obsługa była wolna.' },
         { user: 'bob', restaurant: 'burger', rating: 4, comment: 'Soczyste burgery wołowe i duże porcje, na pewno wrócę.' },
         { user: 'celina', restaurant: 'burger', rating: 2, comment: 'Długo czekałam, a mięso było wysuszone.' },
 
-        // Casa de Tacos (meksykańska)
         { user: 'celina', restaurant: 'tacos', rating: 5, comment: 'Autentyczne tacos al pastor, ostre i aromatyczne.' },
         { user: 'darek', restaurant: 'tacos', rating: 4, comment: 'Dobre burrito i świeże guacamole, miła obsługa.' },
         { user: 'alice', restaurant: 'tacos', rating: 3, comment: 'Smaczne, ale dość drogo jak na wielkość porcji.' },
 
-        // Bangkok Street (tajska)
         { user: 'darek', restaurant: 'bangkok', rating: 5, comment: 'Najlepszy pad thai w mieście, idealnie doprawiony.' },
         { user: 'ewa', restaurant: 'bangkok', rating: 4, comment: 'Aromatyczne zielone curry, ostrość do wyboru.' },
         { user: 'filip', restaurant: 'bangkok', rating: 3, comment: 'Smaczne, ale głośno i ciasno w środku.' },
 
-        // Le Petit Café (francuska / kawiarnia)
         { user: 'ewa', restaurant: 'cafe', rating: 5, comment: 'Najlepsze croissanty i kawa w okolicy, urocze wnętrze.' },
         { user: 'alice', restaurant: 'cafe', rating: 4, comment: 'Pyszne ciasta i tarta cytrynowa, idealne na deser.' },
         { user: 'celina', restaurant: 'cafe', rating: 5, comment: 'Klimatyczna kawiarnia, świetne macarons.' },
 
-        // Pierogarnia pod Wawelem (polska)
         { user: 'alice', restaurant: 'pierogarnia', rating: 5, comment: 'Pierogi ruskie i z kapustą wyśmienite, jak domowe.' },
         { user: 'bob', restaurant: 'pierogarnia', rating: 4, comment: 'Duży wybór pierogów i smaczny barszcz czerwony.' },
         { user: 'darek', restaurant: 'pierogarnia', rating: 5, comment: 'Najlepsze pierogi w Krakowie, ceny przystępne.' },
 
-        // Kebab King (turecka)
         { user: 'filip', restaurant: 'kebab', rating: 4, comment: 'Solidny kebab z dużą ilością mięsa i świeżych warzyw.' },
         { user: 'bob', restaurant: 'kebab', rating: 3, comment: 'W porządku, ale sos czosnkowy mógłby być lepszy.' },
         { user: 'darek', restaurant: 'kebab', rating: 4, comment: 'Szybko, tanio i smacznie, dobre na szybki obiad.' },
 
-        // Athena Taverna (grecka)
         { user: 'celina', restaurant: 'athena', rating: 5, comment: 'Pyszny gyros i sałatka grecka z prawdziwą fetą.' },
         { user: 'ewa', restaurant: 'athena', rating: 4, comment: 'Dobre souvlaki i tzatziki, miła obsługa.' },
         { user: 'filip', restaurant: 'athena', rating: 5, comment: 'Klimat jak w Grecji, polecam moussakę.' },
 
-        // Pizza Forno (włoska)
         { user: 'darek', restaurant: 'forno', rating: 4, comment: 'Cienka pizza z pieca opalanego drewnem, naprawdę smaczna.' },
         { user: 'alice', restaurant: 'forno', rating: 5, comment: 'Świetna pizza margherita ze świeżą bazylią.' },
         { user: 'bob', restaurant: 'forno', rating: 4, comment: 'Dobre calzone i tiramisu na deser.' },
 
-        // Spice of India (indyjska)
         { user: 'ewa', restaurant: 'spice', rating: 5, comment: 'Aromatyczne curry tikka masala i świeży chlebek naan.' },
         { user: 'filip', restaurant: 'spice', rating: 4, comment: 'Ostre dania i sporo opcji wegetariańskich.' },
         { user: 'celina', restaurant: 'spice', rating: 4, comment: 'Pyszny biryani, choć trzeba chwilę poczekać.' },
 
-        // Stary Młyn (polska, Warszawa)
         { user: 'bob', restaurant: 'starymlyn', rating: 4, comment: 'Tradycyjne polskie pierogi i żurek, naprawdę smaczne.' },
         { user: 'alice', restaurant: 'starymlyn', rating: 5, comment: 'Wyśmienity rosół i schabowy jak u babci.' },
         { user: 'ewa', restaurant: 'starymlyn', rating: 4, comment: 'Klimatyczne miejsce, pyszny bigos i domowy kompot.' },
 
-        // Górska Chata (polska, Wrocław)
         { user: 'filip', restaurant: 'gorska', rating: 5, comment: 'Regionalne dania kuchni polskiej, świetna kwaśnica.' },
         { user: 'bob', restaurant: 'gorska', rating: 4, comment: 'Pyszne placki ziemniaczane i oscypek z żurawiną.' },
         { user: 'ewa', restaurant: 'gorska', rating: 5, comment: 'Klimatyczna góralska chata, smaczny żurek w chlebie.' },

@@ -12,20 +12,20 @@ export async function list(req: Request, res: Response, next: NextFunction) {
 
 export async function detail(req: Request, res: Response, next: NextFunction) {
     try {
-        res.json({ restaurant: await service.getRestaurant(req.params.id, req.user?.id) });
+        res.json({ restaurant: await service.getRestaurant(req.params.id as string, req.user?.id) });
     } catch (e) { next(e); }
 }
 
 export async function favorite(req: Request, res: Response, next: NextFunction) {
     try {
-        await service.setFavorite(req.user!.id, req.params.id, true);
+        await service.setFavorite(req.user!.id, req.params.id as string, true);
         res.json({ ok: true });
     } catch (e) { next(e); }
 }
 
 export async function unfavorite(req: Request, res: Response, next: NextFunction) {
     try {
-        await service.setFavorite(req.user!.id, req.params.id, false);
+        await service.setFavorite(req.user!.id, req.params.id as string, false);
         res.json({ ok: true });
     } catch (e) { next(e); }
 }

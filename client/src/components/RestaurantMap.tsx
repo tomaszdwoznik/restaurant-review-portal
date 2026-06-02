@@ -9,7 +9,7 @@ interface Props {
 
 export default function RestaurantMap({ latitude, longitude, name }: Props) {
     return (
-        <div className="h-64 overflow-hidden rounded-lg border">
+        <div className="h-64 w-full relative z-0 bg-stone-100">
             <MapContainer
                 center={[latitude, longitude]}
                 zoom={15}
@@ -21,7 +21,9 @@ export default function RestaurantMap({ latitude, longitude, name }: Props) {
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 />
                 <Marker position={[latitude, longitude]}>
-                    <Popup>{name}</Popup>
+                    <Popup>
+                        <span className="font-bold text-stone-900">{name}</span>
+                    </Popup>
                 </Marker>
             </MapContainer>
         </div>

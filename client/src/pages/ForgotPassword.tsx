@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
+import { KeyRound, ArrowLeft, Mail, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function ForgotPassword() {
     const [email, setEmail] = useState('');
@@ -25,31 +26,65 @@ export default function ForgotPassword() {
     }
 
     return (
-        <div className="mx-auto max-w-sm">
-            <h1 className="mb-4 text-2xl font-bold">Przypomnienie hasła</h1>
-            <form onSubmit={submit} className="space-y-3">
-                <input value={email} onChange={(e) => setEmail(e.target.value)} type="email"
-                    placeholder="Twój e-mail" className="w-full rounded border px-3 py-2" />
-                <button type="submit" disabled={loading}
-                    className="w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700 disabled:opacity-50">
-                    {loading ? 'Wysyłanie…' : 'Wyślij link resetujący'}
-                </button>
-            </form>
-
-            {message && <p className="mt-3 text-sm text-gray-700">{message}</p>}
-
-            {devToken && (
-                <div className="mt-3 rounded border border-amber-300 bg-amber-50 p-3 text-sm">
-                    <p className="font-medium">Tryb deweloperski (brak wysyłki maila):</p>
-                    <Link to={`/reset-password?token=${devToken}`}
-                        className="break-all text-blue-600 hover:underline">
-                        Kliknij, aby ustawić nowe hasło
-                    </Link>
+        <div className="mx-auto max-w-md py-6">
+            <div className="text-center mb-6">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-50 text-orange-600 mb-3">
+                    <KeyRound className="h-6 w-6" />
                 </div>
-            )}
+                <h1 className="text-2xl font-black text-stone-900 tracking-tight">Przypomnienie hasła</h1>
+                <p className="text-stone-500 text-sm mt-1">Podaj swój adres e-mail, aby zresetować hasło dostępowe.</p>
+            </div>
 
-            <p className="mt-3 text-center text-sm text-gray-500">
-                <Link to="/login" className="text-blue-600 hover:underline">Wróć do logowania</Link>
+            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-stone-900/5">
+                <form onSubmit={submit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-semibold text-stone-700 mb-1.5">Adres e-mail</label>
+                        <div className="relative">
+                            <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+                            <input 
+                                value={email} 
+                                onChange={(e) => setEmail(e.target.value)} 
+                                type="email"
+                                placeholder="name@example.com" 
+                                className="w-full rounded-xl bg-stone-50 border border-stone-200 py-2.5 pl-10 pr-4 text-stone-900 outline-none transition-all placeholder:text-stone-400 focus:bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent" 
+                                required
+                            />
+                        </div>
+                    </div>
+                    <button 
+                        type="submit" 
+                        disabled={loading}
+                        className="w-full rounded-xl bg-orange-600 py-2.5 font-semibold text-white shadow-sm shadow-orange-600/20 hover:bg-orange-700 transition-all disabled:opacity-50"
+                    >
+                        {loading ? 'Wysyłanie linku…' : 'Wyślij link resetujący'}
+                    </button>
+                </form>
+
+                {message && (
+                    <div className="mt-4 flex items-start gap-2 rounded-xl bg-stone-50 border border-stone-200 p-3.5 text-sm text-stone-700">
+                        <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>{message}</span>
+                    </div>
+                )}
+
+                {devToken && (
+                    <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
+                        <div className="flex items-center gap-1.5 font-semibold text-amber-900 mb-1">
+                            <AlertCircle className="h-4 w-4 text-amber-600" />
+                            <span>Tryb deweloperski (brak wysyłki):</span>
+                        </div>
+                        <Link to={`/reset-password?token=${devToken}`} className="break-all font-medium text-orange-700 hover:underline">
+                            Kliknij tutaj, aby bezpośrednio ustawić nowe hasło
+                        </Link>
+                    </div>
+                )}
+            </div>
+
+            <p className="mt-6 text-center text-sm">
+                <Link to="/login" className="inline-flex items-center gap-1 font-medium text-orange-600 hover:text-orange-700 transition-colors">
+                    <ArrowLeft className="h-3.5 w-3.5" />
+                    <span>Wróć do ekranu logowania</span>
+                </Link>
             </p>
         </div>
     );
