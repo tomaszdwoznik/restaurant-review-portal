@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import crypto from 'node:crypto';
 import argon2 from 'argon2';
 import { prisma } from '../src/config/prisma';
 
@@ -23,7 +24,7 @@ async function main() {
         });
     }
 
-    const passwordHash = await argon2.hash('password123');
+    const passwordHash = await argon2.hash(crypto.randomBytes(32).toString('hex'));
     const userDefs = [
         { key: 'alice', email: 'alice@example.com', displayName: 'Alice' },
         { key: 'bob', email: 'bob@example.com', displayName: 'Bob' },
@@ -157,7 +158,7 @@ async function main() {
     });
 
     console.log(
-        `Seed zakończony ${menuNames.length} kategorii, ${userDefs.length} userów, ` +
+        `Seed zakończony (${menuNames.length} kategorii, ${userDefs.length} kont (zablokowanych), ` +
         `${restaurantDefs.length} restauracji, ${reviewDefs.length} opinii)`,
     );
 }
