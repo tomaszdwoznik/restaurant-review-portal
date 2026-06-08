@@ -10,5 +10,31 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d restaurants"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql://app:app@db:5432/restaurants?schema=public"
+      JWT_SECRET: "bardzo_dlugi_losowy_ciag_niepowtarzalnych_i_nieprzewidywalnych_znakow"
+      SEED_SKIP_IF_NOT_EMPTY: "true"
+      PORT: "3000"
+      CLIENT_DIST: "/app/client/dist"
+    ports:
+      - "3000:3000"
+    volumes:
+      - uploads:/app/uploads
+
 volumes:
   pgdata:
+  uploads:

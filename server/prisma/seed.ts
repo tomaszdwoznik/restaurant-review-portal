@@ -3,6 +3,10 @@ import argon2 from 'argon2';
 import { prisma } from '../src/config/prisma';
 
 async function main() {
+    if (process.env.SEED_SKIP_IF_NOT_EMPTY === 'true' && (await prisma.restaurant.count()) > 0) {
+        console.log('Baza zawiera już dane.');
+        return;
+    }
     await prisma.review.deleteMany();
     await prisma.restaurant.deleteMany();
 
