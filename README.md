@@ -71,7 +71,7 @@ Aplikacja jest w pełni skonteneryzowana. Jedna komenda stawia bazę danych z pr
    cd restaurant-review-portal
    ```
 
-3. Zmodyfikuj nazwe `.env.example` w folderze server na `.env` oraz uzupelinij wlasne dane do sekretu.
+3. Zmodyfikuj nazwe `.env.example` w folderze server na `.env` oraz zmodyfikuj dane w owym pliku.
 
 4. Uruchom skrypt startowy:
    ```bash
