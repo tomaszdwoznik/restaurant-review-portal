@@ -71,12 +71,14 @@ Aplikacja jest w pełni skonteneryzowana. Jedna komenda stawia bazę danych z pr
    cd restaurant-review-portal
    ```
 
-3. Uruchom skrypt startowy:
+3. Zmodyfikuj nazwe `.env.example` na `.env` oraz uzupelinij wlasne dane do sekretu.
+
+4. Uruchom skrypt startowy:
    ```bash
    ./run.sh
    ```
 
-4. Po zbudowaniu aplikacja jest dostępna pod adresem:
+5. Po zbudowaniu aplikacja jest dostępna pod adresem:
    ```
    http://localhost:3000
    ```

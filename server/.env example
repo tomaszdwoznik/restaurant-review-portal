@@ -1,0 +1,2 @@
+DATABASE_URL="postgresql://user:password@localhost:5432/restaurants?schema=public"
+JWT_SECRET="twoj_wlasny_losowy_bardzo_skomplikowany_sekret"
